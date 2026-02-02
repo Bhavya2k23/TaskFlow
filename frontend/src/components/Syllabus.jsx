@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api'; // ✅ USE CENTRAL API
+import api from '../services/api'; // ✅ Correct Import
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'; 
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import { BookOpen, Trash2, LayoutDashboard, GraduationCap, Award, Library, Lock, BarChart2, Plus, GripVertical, Sparkles, X, Loader2 } from 'lucide-react';
+import { BookOpen, Trash2, LayoutDashboard, Award, Lock, BarChart2, Plus, GripVertical, Sparkles, X, Loader2 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 

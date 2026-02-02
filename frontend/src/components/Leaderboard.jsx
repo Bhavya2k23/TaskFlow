@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api'; // ✅ CHANGED: Import api instead of axios
+import api from '../services/api'; // ✅ Correct Import
 import { Trophy, ArrowLeft, Share2, Flame, User, Swords, RefreshCw, Crown } from 'lucide-react';
 
 const Leaderboard = () => {
@@ -16,10 +16,10 @@ const Leaderboard = () => {
 
   const fetchLeaderboard = async () => { 
     try { 
-      // ✅ CHANGED: Removed localhost URL, using api client
+      // ✅ Using Central API
       const res = await api.get('/api/auth/leaderboard'); 
       setLeaders(res.data); 
-    } catch (err) { console.error(err); } 
+    } catch (err) { console.error("Leaderboard error:", err); } 
   };
 
   const shareStats = () => { 
@@ -35,12 +35,10 @@ const Leaderboard = () => {
   const handleReset = async () => {
     if (!window.confirm("ARE YOU SURE? This will reset everyone's stats to 0!")) return;
     try {
-      // ✅ CHANGED: Using api.put ensures Token is sent
       await api.put('/api/auth/reset-leaderboard');
       fetchLeaderboard(); 
       alert("Leaderboard has been reset!");
     } catch (err) {
-      // Error handling behtar kar di
       const msg = err.response?.data?.message || "Reset failed. You might not have permission.";
       alert(msg);
     }
@@ -48,8 +46,6 @@ const Leaderboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0B0C15] text-slate-900 dark:text-slate-200 font-sans p-4 md:p-8 transition-colors duration-300">
-      
-      {/* Header */}
       <div className="max-w-4xl mx-auto mb-8 flex items-center justify-between">
         <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition">
           <ArrowLeft size={20} /> Back
@@ -57,14 +53,12 @@ const Leaderboard = () => {
         <h1 className="text-3xl font-bold flex items-center gap-2 text-yellow-500">
           <Trophy /> Leaderboard
         </h1>
-        {/* Reset Button */}
         <button onClick={handleReset} className="p-2 bg-rose-500/10 text-rose-500 border border-rose-500/30 rounded-xl hover:bg-rose-500 hover:text-white transition" title="Reset All Stats">
           <RefreshCw size={20} />
         </button>
       </div>
 
       <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* List Section */}
         <div className="lg:col-span-2 space-y-4">
             {leaders.length === 0 ? <p className="text-center text-slate-500">No players found.</p> : leaders.map((player, index) => {
                 const isMe = currentUser && player._id === currentUser._id;
@@ -97,7 +91,6 @@ const Leaderboard = () => {
             })}
         </div>
 
-        {/* Sidebar Section */}
         <div className="space-y-6">
             <div className="bg-indigo-600 rounded-3xl p-6 text-center shadow-lg relative overflow-hidden">
                 <h3 className="text-white font-bold text-xl mb-2">Show Off! 🚀</h3>

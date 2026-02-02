@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api'; // ✅ USE CENTRAL API (Fixes Localhost issue)
 import { useTheme } from '../context/ThemeContext';
 import { User, Lock, Trash2, ArrowLeft, Save, ShieldAlert, LogOut, Flame, Camera, Sun, Moon, X } from 'lucide-react';
 
@@ -23,25 +23,69 @@ const Settings = () => {
   const showMsg = (type, text) => { setMsg({ type, text }); setTimeout(() => setMsg({ type: '', text: '' }), 3000); };
 
   const handleImageChange = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.readAsDataURL(file); reader.onloadend = () => { setAvatar(reader.result); uploadAvatar(reader.result); }; };
-  const uploadAvatar = async (base64) => { try { const res = await axios.put(`http://localhost:5000/api/auth/update-avatar/${user._id}`, { avatar: base64 }); updateLocalUser({ ...user, avatar: res.data.avatar }); showMsg('success', 'Updated!'); } catch (err) { showMsg('error', 'Failed'); } };
-  const handleRemoveAvatar = async () => { if (!window.confirm("Remove photo?")) return; try { await axios.put(`http://localhost:5000/api/auth/remove-avatar/${user._id}`); setAvatar(""); updateLocalUser({ ...user, avatar: "" }); } catch (err) { } };
   
-  // ✅ FIXED HERE
+  const uploadAvatar = async (base64) => { 
+    try { 
+        // ✅ FIX: No localhost, uses Render URL automatically
+        const res = await api.put(`/api/auth/update-avatar/${user._id}`, { avatar: base64 }); 
+        updateLocalUser({ ...user, avatar: res.data.avatar }); 
+        showMsg('success', 'Updated!'); 
+    } catch (err) { showMsg('error', 'Failed to upload'); } 
+  };
+
+  const handleRemoveAvatar = async () => { 
+    if (!window.confirm("Remove photo?")) return; 
+    try { 
+        await api.put(`/api/auth/remove-avatar/${user._id}`); 
+        setAvatar(""); 
+        updateLocalUser({ ...user, avatar: "" }); 
+    } catch (err) { console.error(err); } 
+  };
+  
   const handleUpdateProfile = async (e) => { 
     e.preventDefault(); 
     try { 
-        const res = await axios.put(`http://localhost:5000/api/auth/update/${user._id}`, { name }); 
+        const res = await api.put(`/api/auth/update/${user._id}`, { name }); 
         updateLocalUser(res.data); 
         showMsg('success', 'Saved'); 
     } catch (err) { 
-        showMsg('error', 'Failed'); 
+        showMsg('error', 'Failed to update profile'); 
     } 
   };
 
-  const handleChangePassword = async (e) => { e.preventDefault(); try { await axios.put(`http://localhost:5000/api/auth/password/${user._id}`, { oldPassword: passwords.old, newPassword: passwords.new }); setPasswords({ old: '', new: '' }); showMsg('success', 'Changed'); } catch (err) { showMsg('error', 'Failed'); } };
-  const handleToggleFreeze = async () => { try { const res = await axios.put(`http://localhost:5000/api/auth/toggle-freeze/${user._id}`); updateLocalUser({ ...user, isStreakFrozen: res.data.isStreakFrozen }); } catch (err) { } };
-  const handleResetStreak = async () => { if (!window.confirm("Reset?")) return; try { await axios.put(`http://localhost:5000/api/auth/reset-streak/${user._id}`); updateLocalUser({ ...user, streak: 0, isStreakFrozen: false }); showMsg('success', 'Reset'); } catch (err) { } };
-  const handleDeleteAccount = async () => { if (!window.confirm("DELETE?")) return; try { await axios.delete(`http://localhost:5000/api/auth/delete/${user._id}`); localStorage.clear(); navigate('/register'); } catch (err) { } };
+  const handleChangePassword = async (e) => { 
+    e.preventDefault(); 
+    try { 
+        await api.put(`/api/auth/password/${user._id}`, { oldPassword: passwords.old, newPassword: passwords.new }); 
+        setPasswords({ old: '', new: '' }); 
+        showMsg('success', 'Changed'); 
+    } catch (err) { showMsg('error', 'Incorrect Old Password'); } 
+  };
+
+  const handleToggleFreeze = async () => { 
+    try { 
+        const res = await api.put(`/api/auth/toggle-freeze/${user._id}`); 
+        updateLocalUser({ ...user, isStreakFrozen: res.data.isStreakFrozen }); 
+    } catch (err) { console.error(err); } 
+  };
+
+  const handleResetStreak = async () => { 
+    if (!window.confirm("Reset Streak to 0?")) return; 
+    try { 
+        await api.put(`/api/auth/reset-streak/${user._id}`); 
+        updateLocalUser({ ...user, streak: 0, isStreakFrozen: false }); 
+        showMsg('success', 'Reset'); 
+    } catch (err) { console.error(err); } 
+  };
+
+  const handleDeleteAccount = async () => { 
+    if (!window.confirm("DELETE ACCOUNT PERMANENTLY? This cannot be undone.")) return; 
+    try { 
+        await api.delete(`/api/auth/delete/${user._id}`); 
+        localStorage.clear(); 
+        navigate('/register'); 
+    } catch (err) { showMsg('error', 'Delete Failed'); } 
+  };
 
   return (
     <div className="min-h-screen bg-[#0B0C15] text-slate-200 font-sans p-4 md:p-8 flex justify-center">
