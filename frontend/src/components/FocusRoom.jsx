@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api'; // ✅ USE CENTRAL API
+import api from '../services/api'; // ✅ USES CENTRAL API (Render Compatible)
 import { Play, Pause, RotateCcw, ArrowLeft, Maximize2, Minimize2, Music, CheckCircle2, Coffee, Brain } from 'lucide-react';
 
 const FocusRoom = () => {
@@ -32,7 +32,15 @@ const FocusRoom = () => {
     return () => clearInterval(interval);
   }, [isActive, timeLeft]);
 
-  const fetchTasks = async (id) => { try { const res = await api.get(`/api/tasks/${id}`); setTasks(res.data.filter(t => !t.isCompleted)); } catch (err) { } };
+  const fetchTasks = async (id) => { 
+    try { 
+        const res = await api.get(`/api/tasks/${id}`); 
+        setTasks(res.data.filter(t => !t.isCompleted)); 
+    } catch (err) { 
+        console.error("Task Fetch Error:", err);
+    } 
+  };
+
   const toggleTimer = () => setIsActive(!isActive);
   const resetTimer = () => { setIsActive(false); setTimeLeft(mode === 'focus' ? 25 * 60 : 5 * 60); };
   
@@ -42,7 +50,17 @@ const FocusRoom = () => {
     setIsPlaying(!isPlaying);
   };
 
-  const markTaskDone = async () => { if (!selectedTask) return; try { await api.put(`/api/tasks/${selectedTask}`); setTasks(tasks.filter(t => t._id !== selectedTask)); setSelectedTask(''); } catch (err) { } };
+  const markTaskDone = async () => { 
+    if (!selectedTask) return; 
+    try { 
+        await api.put(`/api/tasks/${selectedTask}`); 
+        setTasks(tasks.filter(t => t._id !== selectedTask)); 
+        setSelectedTask(''); 
+    } catch (err) { 
+        console.error("Update Task Error:", err);
+    } 
+  };
+
   const formatTime = (seconds) => { const m = Math.floor(seconds / 60); const s = seconds % 60; return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`; };
 
   const backgrounds = {

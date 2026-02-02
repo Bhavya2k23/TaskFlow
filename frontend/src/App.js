@@ -10,7 +10,7 @@ import Syllabus from './components/Syllabus';
 import Settings from './components/Settings';
 import FocusBattle from './components/FocusBattle';
 import Leaderboard from './components/Leaderboard';
-import FocusRoom from './components/FocusRoom'; // ✅ IMPORT ADDED
+import FocusRoom from './components/FocusRoom'; 
 
 // 🔐 Private Route
 import PrivateRoute from './components/PrivateRoute';
@@ -72,7 +72,7 @@ function App() {
             }
           />
 
-          {/* ✅ FOCUS ROOM ROUTE ADDED HERE */}
+          {/* ✅ FOCUS ROOM ROUTE */}
           <Route
             path="/focus"
             element={

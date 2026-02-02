@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import io from 'socket.io-client';
+import { socket } from '../services/socket'; // ✅ USE SHARED SOCKET (No more localhost hardcoding)
 import confetti from 'canvas-confetti';
 import { Sword, AlertTriangle, Play, Trophy, Skull, ArrowLeft, LogOut } from 'lucide-react';
-
-// ✅ GET URL FROM ENV
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const socket = io.connect(API_URL);
 
 const FocusBattle = () => {
   const navigate = useNavigate();
@@ -25,17 +21,22 @@ const FocusBattle = () => {
     if (!userData) navigate('/login');
     else setUser(JSON.parse(userData));
 
-    // 👂 Listen for Events
-    socket.on("user_joined", (username) => {
-      setOpponent(username);
-    });
+    // ✅ Ensure Socket is Connected
+    if (!socket.connected) {
+      socket.connect();
+    }
 
-    socket.on("battle_started", () => {
+    // 👂 Listen for Events
+    const handleUserJoined = (username) => {
+      setOpponent(username);
+    };
+
+    const handleBattleStarted = () => {
       setBattleStarted(true);
       setGameResult(null);
-    });
+    };
 
-    socket.on("game_over", (data) => {
+    const handleGameOver = (data) => {
       setBattleStarted(false);
       if (data.winner === "Opponent") {
         triggerWin();
@@ -43,12 +44,17 @@ const FocusBattle = () => {
       } else {
         setGameResult({ type: 'LOSE', msg: data.reason });
       }
-    });
+    };
 
+    socket.on("user_joined", handleUserJoined);
+    socket.on("battle_started", handleBattleStarted);
+    socket.on("game_over", handleGameOver);
+
+    // 🧹 Cleanup Listeners on Unmount
     return () => {
-      socket.off("user_joined");
-      socket.off("battle_started");
-      socket.off("game_over");
+      socket.off("user_joined", handleUserJoined);
+      socket.off("battle_started", handleBattleStarted);
+      socket.off("game_over", handleGameOver);
     };
   }, [navigate]);
 

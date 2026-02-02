@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-// ✅ LOAD API URL FROM ENV
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// ✅ LOAD API URL FROM ENV (Yahan se link uthayega)
+// Exporting it so Socket.io can use the exact same URL
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+console.log("🔗 Connecting to Backend at:", API_URL); // Debugging ke liye
 
 // Create Axios instance
 const api = axios.create({
@@ -29,6 +32,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // If token is invalid/expired, logout user
+      console.warn("⚠️ Session Expired. Logging out...");
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
