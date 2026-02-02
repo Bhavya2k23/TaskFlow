@@ -11,6 +11,7 @@ import Settings from './components/Settings';
 import FocusBattle from './components/FocusBattle';
 import Leaderboard from './components/Leaderboard';
 import FocusRoom from './components/FocusRoom'; 
+import AdminPanel from './components/AdminPanel'; // ✅ Added AdminPanel Import
 
 // 🔐 Private Route
 import PrivateRoute from './components/PrivateRoute';
@@ -72,12 +73,21 @@ function App() {
             }
           />
 
-          {/* ✅ FOCUS ROOM ROUTE */}
           <Route
             path="/focus"
             element={
               <PrivateRoute>
                 <FocusRoom />
+              </PrivateRoute>
+            }
+          />
+
+          {/* ✅ ADMIN ROUTE */}
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute>
+                <AdminPanel />
               </PrivateRoute>
             }
           />

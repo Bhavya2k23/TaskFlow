@@ -145,4 +145,53 @@ router.put('/reset-leaderboard', protect, async (req, res) => {
   }
 });
 
+
+
+
+// ==========================================
+// 🛡️ ADMIN ROUTES (Paste at the bottom)
+// ==========================================
+
+// 1. Get All Users (Admin Only)
+router.get('/admin/users', fetchuser, async (req, res) => {
+  try {
+    const adminUser = await User.findById(req.user.id);
+    if (adminUser.role !== 'admin') {
+      return res.status(403).json({ message: "Access Denied. Admins only." });
+    }
+    // Fetch all users (exclude passwords)
+    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// 2. Delete User (Admin Only)
+router.delete('/admin/delete-user/:id', fetchuser, async (req, res) => {
+  try {
+    const adminUser = await User.findById(req.user.id);
+    if (adminUser.role !== 'admin') {
+      return res.status(403).json({ message: "Access Denied. Admins only." });
+    }
+
+    const userToDelete = await User.findById(req.params.id);
+    if (!userToDelete) return res.status(404).json({ message: "User not found" });
+
+    // Prevent Admin from deleting themselves
+    if (userToDelete._id.toString() === req.user.id) {
+        return res.status(400).json({ message: "You cannot delete yourself!" });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "User deleted successfully." });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// module.exports = router; (Yeh line file ke end mein honi chahiye)
+
 module.exports = router;

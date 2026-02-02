@@ -6,13 +6,20 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   avatar: { type: String, default: "" },
   
+  // ✅ NEW: ROLE SYSTEM (Admin Feature)
+  role: { 
+    type: String, 
+    default: 'user', 
+    enum: ['user', 'admin'] 
+  },
+
   // Streak System
   streak: { type: Number, default: 0 },
   lastTaskDate: { type: Date, default: null },
   isStreakFrozen: { type: Boolean, default: false },
   totalTasksCompleted: { type: Number, default: 0 },
 
-  // 🐉 PIXEL PET SYSTEM (NEW)
+  // 🐉 PIXEL PET SYSTEM
   pet: {
     name: { type: String, default: "Rocky" },
     xp: { type: Number, default: 0 },

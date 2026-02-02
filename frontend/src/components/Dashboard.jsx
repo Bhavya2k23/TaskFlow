@@ -10,8 +10,8 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { 
   CheckCircle2, Trash2, Plus, Flame, Trophy, Target, CalendarDays, 
   LayoutDashboard, LogOut, BookOpen, Snowflake, Brain, Zap, TrendingUp, 
-  AlertTriangle, FileText, History, X, PieChart, User, Swords 
-} from 'lucide-react';
+  AlertTriangle, FileText, History, X, PieChart, User, Swords, ShieldCheck 
+} from 'lucide-react'; // ✅ Added ShieldCheck
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -131,6 +131,14 @@ const Dashboard = () => {
         <div className="flex items-center gap-3">
             <div className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-full border ${user?.isStreakFrozen ? 'bg-cyan-500/10 border-cyan-500 text-cyan-500' : 'bg-[#1A1B23] border-slate-800'}`}>{user?.isStreakFrozen ? <Snowflake size={18} className="text-cyan-500 dark:text-cyan-400" /> : <Flame size={18} className="text-orange-500" />}<span className="text-sm font-bold text-white">{user?.streak || 0} {user?.isStreakFrozen ? 'Frozen' : 'Days'}</span></div>
             <div className="flex gap-1 bg-[#1A1B23] p-1 rounded-xl border border-slate-800">
+                
+                {/* ✅ ADMIN BUTTON (Visible only to Admin) */}
+                {user?.role === 'admin' && (
+                    <button onClick={() => navigate('/admin')} className="p-2 text-slate-400 hover:text-rose-500 transition" title="Admin Panel">
+                        <ShieldCheck size={20} />
+                    </button>
+                )}
+
                 <button onClick={generateReport} className="p-2 text-slate-400 hover:text-green-500 transition" title="Report"><FileText size={20} /></button>
                 <button onClick={() => navigate('/battle')} className="p-2 text-slate-400 hover:text-rose-500 transition" title="Focus Battle"><Swords size={20} /></button>
                 <button onClick={() => setShowTimeMachine(true)} className="p-2 text-slate-400 hover:text-cyan-500 transition" title="History"><History size={20} /></button>
@@ -145,6 +153,7 @@ const Dashboard = () => {
 
       <div className="h-24"></div>
 
+      {/* Rest of the Dashboard Code remains exactly same */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-8">
           {isZeroDay && ( <div className="bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl flex items-center justify-between"><div className="text-rose-500 font-bold flex items-center gap-2"><AlertTriangle /> Anti-Zero Day Active!</div><button onClick={() => document.getElementById('taskInput').focus()} className="bg-rose-500 px-4 py-2 rounded-lg text-white font-bold">Do 1 Task</button></div> )}
@@ -177,7 +186,6 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="lg:col-span-4 space-y-6">
-             {/* 🚨 CHECK THIS COMPONENT: PetWidget often contains socket logic */}
              <PetWidget user={user} />
              <div className="bg-[#151621] p-6 rounded-3xl border border-slate-800 shadow-sm">
                 <div className="flex justify-between items-center mb-4"><h3 className="font-bold text-white flex items-center gap-2"><PieChart size={18} className="text-indigo-500"/> Daily Goal</h3></div>
