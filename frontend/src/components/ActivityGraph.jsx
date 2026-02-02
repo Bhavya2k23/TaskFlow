@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
-import axios from 'axios';
+import api from '../services/api'; // ✅ FIX: Use Central API (No more axios/localhost)
 
 const ActivityGraph = ({ userId }) => {
   const [history, setHistory] = useState([]);
@@ -14,11 +14,14 @@ const ActivityGraph = ({ userId }) => {
 
   useEffect(() => {
     if (userId) fetchHistory();
+    // eslint-disable-next-line
   }, [userId]);
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/tasks/history/${userId}`);
+      // ✅ FIX: Removed hardcoded localhost
+      // Now it uses the Render URL automatically from api.js
+      const res = await api.get(`/api/tasks/history/${userId}`);
       setHistory(res.data);
     } catch (err) {
       console.error("Heatmap Error:", err);

@@ -6,7 +6,7 @@ const PetWidget = ({ user }) => {
   const [animate, setAnimate] = useState(false);
 
   // Pet Stats
-  const { xp, level, stage, evolutionName, mood } = user?.pet || { xp: 0, level: 1, stage: 1, mood: 'happy' };
+  const { xp, level, stage, evolutionName } = user?.pet || { xp: 0, level: 1, stage: 1, mood: 'happy' };
   const xpNeeded = level * 100;
   const progress = Math.min(100, Math.round((xp / xpNeeded) * 100));
 

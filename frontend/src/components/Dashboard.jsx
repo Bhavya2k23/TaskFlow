@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api'; // ✅ USE CENTRAL API
+import api from '../services/api'; // ✅ Uses Central API (Render Link)
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ActivityGraph from './ActivityGraph';
@@ -48,7 +48,7 @@ const Dashboard = () => {
       const res = await api.get(`/api/auth/user/${id}`); 
       setUser(res.data); 
       localStorage.setItem('user', JSON.stringify(res.data)); 
-    } catch (err) { } 
+    } catch (err) { console.error("User fetch error", err); } 
   };
 
   const fetchTasks = async (id) => { try { const res = await api.get(`/api/tasks/${id}`); setTasks(res.data); } catch (err) { } };
@@ -177,6 +177,7 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="lg:col-span-4 space-y-6">
+             {/* 🚨 CHECK THIS COMPONENT: PetWidget often contains socket logic */}
              <PetWidget user={user} />
              <div className="bg-[#151621] p-6 rounded-3xl border border-slate-800 shadow-sm">
                 <div className="flex justify-between items-center mb-4"><h3 className="font-bold text-white flex items-center gap-2"><PieChart size={18} className="text-indigo-500"/> Daily Goal</h3></div>
