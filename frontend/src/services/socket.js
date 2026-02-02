@@ -1,10 +1,10 @@
 import io from 'socket.io-client';
-import { API_URL } from './api'; // ✅ Wahi same URL use karega jo api.js mein hai
+import { API_URL } from './api'; 
 
-// Socket Connection setup
+// Socket Connection
 export const socket = io(API_URL, {
-  transports: ['websocket'], // Force websocket (fastest)
+  transports: ['websocket'], // Fast connection
   autoConnect: true,
-  reconnection: true, // Auto retry connection
-  reconnectionAttempts: 5, // Maximum 5 baar retry karega
+  reconnection: true, 
+  reconnectionAttempts: 5, 
 });

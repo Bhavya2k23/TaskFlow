@@ -1,12 +1,10 @@
 import axios from 'axios';
 
-// ✅ LOAD API URL FROM ENV (Yahan se link uthayega)
-// Exporting it so Socket.io can use the exact same URL
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// ✅ DIRECT RENDER LINK (No Env Variables needed anymore)
+export const API_URL = "https://taskflow-api-67gl.onrender.com";
 
-console.log("🔗 Connecting to Backend at:", API_URL); // Debugging ke liye
+console.log("🔗 Connecting to Backend at:", API_URL); 
 
-// Create Axios instance
 const api = axios.create({
   baseURL: API_URL, 
   headers: {
@@ -14,7 +12,7 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor: Attaches Token to every request
+// Request Interceptor: Token Attach karne ke liye
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -26,12 +24,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Handles Token Expiry
+// Response Interceptor: Token Expire handle karne ke liye
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // If token is invalid/expired, logout user
       console.warn("⚠️ Session Expired. Logging out...");
       localStorage.removeItem('token');
       localStorage.removeItem('user');
