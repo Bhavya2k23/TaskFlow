@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0B0C15; /* Dark Theme Background */
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #151621; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+/* ✅ HEATMAP COLORS (GitHub Style) */
+.react-calendar-heatmap text { font-size: 10px; fill: #64748b; }
+.react-calendar-heatmap .color-empty { fill: #1e293b; rx: 3px; }
+.react-calendar-heatmap .color-scale-1 { fill: #0e4429; rx: 3px; }
+.react-calendar-heatmap .color-scale-2 { fill: #26a641; rx: 3px; }
+.react-calendar-heatmap .color-scale-3 { fill: #39d353; rx: 3px; }
+.react-calendar-heatmap .color-scale-4 { fill: #39d353; rx: 3px; stroke: #bbf7d0; stroke-width: 1px; }
+
+/* Tooltip Style */
+.heatmap-tooltip-custom { 
+  background-color: #1e293b !important; 
+  color: #fff !important; 
+  padding: 8px 12px !important; 
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Animations */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.animate-bounce-slow { animation: bounce-slow 3s infinite; }
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spin-slow 3s linear infinite; }
