@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { socket } from '../services/socket'; // ✅ USE SHARED SOCKET (No more localhost hardcoding)
+import { useNavigate, useSearchParams } from 'react-router-dom'; 
+import { socket } from '../services/socket'; 
 import confetti from 'canvas-confetti';
-import { Sword, AlertTriangle, Play, Trophy, Skull, ArrowLeft, LogOut } from 'lucide-react';
+import { Sword, AlertTriangle, Play, Trophy, Skull, ArrowLeft, LogOut, Share2, Copy, RefreshCw } from 'lucide-react'; 
 
 const FocusBattle = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams(); 
   const [user, setUser] = useState(null);
   
+  // ✅ LIVE WEBSITE URL (Ab Localhost nahi jayega)
+  const WEBSITE_URL = "https://task-flow-tracker-6mjf3cw94-bhavyas-projects-aa53dbe7.vercel.app";
+
   // Game States
   const [room, setRoom] = useState("");
   const [inLobby, setInLobby] = useState(true);
@@ -19,7 +23,23 @@ const FocusBattle = () => {
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (!userData) navigate('/login');
-    else setUser(JSON.parse(userData));
+    else {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // ✅ AUTO-JOIN LOGIC: Check if URL has ?room=1234
+        const roomParam = searchParams.get('room');
+        if (roomParam) {
+            setRoom(roomParam);
+            // Small delay to ensure socket connects before joining
+            setTimeout(() => {
+                if(socket.connected) {
+                    socket.emit("join_room", { room: roomParam, username: parsedUser.name });
+                    setInLobby(false);
+                }
+            }, 500);
+        }
+    }
 
     // ✅ Ensure Socket is Connected
     if (!socket.connected) {
@@ -56,7 +76,7 @@ const FocusBattle = () => {
       socket.off("battle_started", handleBattleStarted);
       socket.off("game_over", handleGameOver);
     };
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   // 🕵️ ANTI-CHEAT LOGIC
   useEffect(() => {
@@ -86,6 +106,29 @@ const FocusBattle = () => {
       socket.emit("join_room", { room, username: user.name });
       setInLobby(false);
     }
+  };
+
+  // ✅ CREATE RANDOM ROOM
+  const createRoom = () => {
+    const randomID = Math.floor(1000 + Math.random() * 9000).toString();
+    setRoom(randomID);
+  };
+
+  // ✅ SHARE ROOM LINK (WhatsApp - FIXED with Live URL)
+  const shareRoom = () => {
+    if (!room) return alert("Create or Enter a Room ID first!");
+    
+    const link = `${WEBSITE_URL}/battle?room=${room}`;
+    const text = `⚔️ Challenge! Join my Focus Battle Room: ${room} \n👉 Click here: ${link}`;
+    
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const copyRoomLink = () => {
+     if (!room) return;
+     const link = `${WEBSITE_URL}/battle?room=${room}`;
+     navigator.clipboard.writeText(link);
+     alert("Battle Link Copied! 📋 Share it anywhere.");
   };
 
   const startBattle = () => {
@@ -143,13 +186,34 @@ const FocusBattle = () => {
           <h1 className="text-3xl font-bold mb-2">Focus Battle ⚔️</h1>
           <p className="text-slate-400 mb-6">Challenge a friend. Switching tabs = Automatic Defeat.</p>
           
-          <input 
-            type="text" 
-            placeholder="Enter Room ID (e.g. 1234)" 
-            className="w-full p-4 rounded-xl bg-[#0B0C15] border border-slate-700 outline-none text-white text-center text-xl mb-4"
-            onChange={(e) => setRoom(e.target.value)}
-          />
-          <button onClick={joinRoom} className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold transition">Enter Arena</button>
+          {/* Room Input Area */}
+          <div className="relative mb-4">
+             <input 
+                type="text" 
+                placeholder="Enter Room ID (e.g. 1234)" 
+                className="w-full p-4 rounded-xl bg-[#0B0C15] border border-slate-700 outline-none text-white text-center text-xl tracking-widest font-mono"
+                value={room}
+                onChange={(e) => setRoom(e.target.value)}
+             />
+             {/* Copy & Refresh Buttons inside input */}
+             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2">
+                 {room && (
+                    <button onClick={copyRoomLink} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition" title="Copy Link">
+                        <Copy size={16} />
+                    </button>
+                 )}
+                 <button onClick={createRoom} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition" title="Generate Random ID">
+                    <RefreshCw size={16} />
+                 </button>
+             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-4">
+              <button onClick={joinRoom} className="bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold transition">Enter Arena</button>
+              <button onClick={shareRoom} className="bg-[#25D366] hover:opacity-90 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                 <Share2 size={18} /> Share
+              </button>
+          </div>
         </div>
       )}
 
@@ -178,8 +242,13 @@ const FocusBattle = () => {
             <div className="text-center py-10">
               {!battleStarted ? (
                  <div>
-                    <p className="text-slate-400 mb-6">Waiting for opponent to join...</p>
-                    {opponent && <button onClick={startBattle} className="bg-green-600 hover:bg-green-500 px-8 py-3 rounded-full font-bold flex items-center gap-2 mx-auto"><Play size={20}/> Start Battle</button>}
+                    <p className="text-slate-400 mb-2">Room ID: <span className="font-mono text-white bg-slate-800 px-2 py-1 rounded">{room}</span></p>
+                    <p className="text-slate-500 text-sm mb-6">Share this ID with your friend to join.</p>
+                    {opponent ? (
+                        <button onClick={startBattle} className="bg-green-600 hover:bg-green-500 px-8 py-3 rounded-full font-bold flex items-center gap-2 mx-auto animate-bounce"><Play size={20}/> Start Battle</button>
+                    ) : (
+                        <button onClick={shareRoom} className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 mx-auto"><Share2 size={16}/> Invite Friend</button>
+                    )}
                  </div>
               ) : (
                 <div className="animate-pulse">

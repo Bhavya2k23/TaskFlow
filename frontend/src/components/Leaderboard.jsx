@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api'; // ✅ Correct Import
-import { Trophy, ArrowLeft, Share2, Flame, User, Swords, RefreshCw, Crown, Trash2, Copy } from 'lucide-react'; // ✅ Added Icons
+import api from '../services/api'; 
+import { Trophy, ArrowLeft, Share2, Flame, User, Swords, RefreshCw, Crown, Trash2, Copy } from 'lucide-react'; 
 
 const Leaderboard = () => {
   const navigate = useNavigate();
   const [leaders, setLeaders] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+
+  // ✅ Yahan apni Live Website ka link daalo (Vercel wala)
+  // Maine tumhare screenshot se dekh kar daal diya hai
+  const WEBSITE_URL = "https://task-flow-tracker-6mjf3cw94-bhavyas-projects-aa53dbe7.vercel.app";
 
   useEffect(() => {
     const u = localStorage.getItem('user');
@@ -16,21 +20,25 @@ const Leaderboard = () => {
 
   const fetchLeaderboard = async () => { 
     try { 
-      // ✅ Using Central API
       const res = await api.get('/api/auth/leaderboard'); 
       setLeaders(res.data); 
     } catch (err) { console.error("Leaderboard error:", err); } 
   };
 
   const shareStats = () => { 
-    const text = `🔥 I'm on a ${currentUser?.streak || 0}-day streak on TaskFlow! Join me: http://localhost:3000`; 
+    // ✅ Updated Message
+    const text = `🔥 I am on a ${currentUser?.streak || 0}-day streak on TaskFlow! Can you beat me? Join here: ${WEBSITE_URL}`; 
     navigator.clipboard.writeText(text);
-    alert("Link copied to clipboard! 📋");
+    alert("Link copied to clipboard! 📋 Share it anywhere.");
   };
 
   const challengeFriend = () => { 
-    const text = `⚔️ I challenge you! Beat my ${currentUser?.streak || 0}-day streak on TaskFlow! Join here: http://localhost:3000`; 
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank'); 
+    // ✅ Updated Message & Fixed Emoji
+    const text = `🚀 I challenge you! Beat my ${currentUser?.streak || 0}-day streak on TaskFlow! Join now: ${WEBSITE_URL}`; 
+    
+    // WhatsApp URL Format Fix
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, '_blank'); 
   };
 
   const handleReset = async () => {
@@ -45,14 +53,13 @@ const Leaderboard = () => {
     }
   };
 
-  // ✅ NEW: Admin Delete User Function
   const handleDeleteUser = async (userId, userName) => {
     if (!window.confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`)) return;
     
     try {
         await api.delete(`/api/auth/admin/delete-user/${userId}`);
         alert(`${userName} has been deleted.`);
-        fetchLeaderboard(); // Refresh list
+        fetchLeaderboard(); 
     } catch (err) {
         alert(err.response?.data?.message || "Failed to delete user.");
     }
@@ -99,7 +106,6 @@ const Leaderboard = () => {
                             <p className="text-xs text-slate-500">{player.totalTasksCompleted || 0} Tasks 🔨</p>
                         </div>
                         
-                        {/* Streak Display */}
                         <div className="text-right mr-2">
                             <div className="flex items-center gap-1 font-bold text-orange-500"><Flame size={16} fill="currentColor" /> {player.streak || 0}</div>
                             <span className="text-[10px] text-slate-500 uppercase">Streak</span>
