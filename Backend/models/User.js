@@ -6,12 +6,16 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   avatar: { type: String, default: "" },
   
-  // ✅ NEW: ROLE SYSTEM (Admin Feature)
+  // Role System
   role: { 
     type: String, 
     default: 'user', 
     enum: ['user', 'admin'] 
   },
+
+  // ✅ NEW: PASSWORD RESET FIELDS
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 
   // Streak System
   streak: { type: Number, default: 0 },
@@ -19,13 +23,13 @@ const UserSchema = new mongoose.Schema({
   isStreakFrozen: { type: Boolean, default: false },
   totalTasksCompleted: { type: Number, default: 0 },
 
-  // 🐉 PIXEL PET SYSTEM
+  // Pixel Pet System
   pet: {
     name: { type: String, default: "Rocky" },
     xp: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
-    stage: { type: Number, default: 1 }, // 1: Egg, 2: Baby, 3: Teen, 4: Adult
-    mood: { type: String, default: "happy" }, // happy, sad, sleeping
+    stage: { type: Number, default: 1 }, 
+    mood: { type: String, default: "happy" },
     evolutionName: { type: String, default: "Mystery Egg" }
   },
 

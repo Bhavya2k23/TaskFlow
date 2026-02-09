@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutDashboard, ArrowRight } from 'lucide-react';
+import { LayoutDashboard, ArrowRight, Eye, EyeOff } from 'lucide-react'; // ✅ Icons Added
 import api from '../services/api';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false); // ✅ Toggle State
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-[#0B0C15] flex items-center justify-center p-4 relative overflow-hidden">
 
-      {/* Background Blobs */}
+      {/* Background Blobs (Tera Original Design) */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px]"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full blur-[120px]"></div>
@@ -77,17 +78,33 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              className="w-full bg-[#0B0C15] border border-slate-800 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition"
-              placeholder="••••••••"
-              onChange={handleChange}
-              required
-            />
+            <div className="flex justify-between items-center mb-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Password
+                </label>
+                <Link to="/forgot-password" className="text-xs text-indigo-400 hover:text-indigo-300 transition">
+                    Forgot Password?
+                </Link>
+            </div>
+            
+            {/* ✅ UPDATED PASSWORD FIELD WITH EYE ICON */}
+            <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"} // Dynamic Type
+                  name="password"
+                  className="w-full bg-[#0B0C15] border border-slate-800 rounded-xl p-3.5 pr-12 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition"
+                  placeholder="••••••••"
+                  onChange={handleChange}
+                  required
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3.5 text-slate-500 hover:text-white transition cursor-pointer"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+            </div>
           </div>
 
           <button

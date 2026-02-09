@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto'); // ✅ Needed for token
-const nodemailer = require('nodemailer'); // ✅ Needed for email
+const crypto = require('crypto'); // ✅ For generating tokens
+const nodemailer = require('nodemailer'); // ✅ For sending emails
 const User = require('../models/User');
 const Task = require('../models/Task');
 const Syllabus = require('../models/Syllabus');
-const { protect } = require('../middleware/authMiddleware'); // ✅ Middleware import
+const { protect } = require('../middleware/authMiddleware');
 
 // 1. Register
 router.post('/register', async (req, res) => {
@@ -37,10 +37,10 @@ router.post('/login', async (req, res) => {
 });
 
 // ==========================================
-// 🔐 FORGOT PASSWORD ROUTES (WITH TERMINAL HACK)
+// 🔐 FORGOT PASSWORD & RESET (NEW)
 // ==========================================
 
-// 3. Forgot Password (Send Email + Print in Console)
+// 3. Forgot Password (Send Email)
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   try {
@@ -55,15 +55,10 @@ router.post('/forgot-password', async (req, res) => {
     user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 Minutes Valid
     await user.save();
 
-    // Create Reset URL
-    // We use localhost:3000 hardcoded here to ensure it works in your local dev environment
-    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
-
-    // 🔥🔥🔥 TERMINAL HACK: PRINT LINK TO CONSOLE 🔥🔥🔥
-    console.log("\n========================================================");
-    console.log("🔗 PASSWORD RESET LINK (Click here to reset):");
-    console.log(resetUrl);
-    console.log("========================================================\n");
+    // Create Reset URL (Frontend URL)
+    // IMPORTANT: Jab deploy karo toh localhost hata kar apna frontend domain daalna
+    // Lekin user browser se aa raha hai toh 'req.headers.origin' best hai automatic detection ke liye
+    const resetUrl = `${req.headers.origin}/reset-password/${resetToken}`;
 
     const message = `
       <h1>Password Reset Request</h1>
@@ -72,35 +67,24 @@ router.post('/forgot-password', async (req, res) => {
       <p>This link expires in 10 minutes.</p>
     `;
 
-    // Try sending email, but don't crash if it fails (because of fake email)
-    try {
-        const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: { 
-            user: process.env.EMAIL_USER, 
-            pass: process.env.EMAIL_PASS 
-          }
-        });
-    
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: user.email,
-          subject: "TaskFlow - Password Reset",
-          html: message
-        });
-        res.json({ message: "Email Sent! Check your inbox." });
-    } catch (emailError) {
-        // If email fails, we still send success because we printed the link in the terminal
-        console.log("⚠️ Email failed (likely fake email), but link is printed above.");
-        res.json({ message: "Check Backend Terminal for the Reset Link!" });
-    }
+    // Send Email
+    const transporter = nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE,
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "TaskFlow - Password Reset",
+      html: message
+    });
+
+    res.json({ message: "Email Sent Successfully! Check your inbox." });
 
   } catch (err) {
     console.error(err);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save();
-    res.status(500).json({ message: "Error in Forgot Password logic" });
+    res.status(500).json({ message: "Email could not be sent" });
   }
 });
 
@@ -111,7 +95,7 @@ router.put('/reset-password/:resetToken', async (req, res) => {
 
     const user = await User.findOne({
       resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() }
+      resetPasswordExpire: { $gt: Date.now() } // Check if not expired
     });
 
     if (!user) return res.status(400).json({ message: "Invalid or Expired Token" });
@@ -126,12 +110,11 @@ router.put('/reset-password/:resetToken', async (req, res) => {
     
     await user.save();
 
-    res.json({ message: "Password Updated! Please Login." });
+    res.json({ message: "Password Updated Successfully! Please Login." });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ... Existing Protected Routes ...
-
+// ... Existing Protected Routes (Keep them as they are) ...
 router.get('/user/:id', protect, async (req, res) => {
   try { const user = await User.findById(req.params.id).select('-password'); res.json(user); } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -188,80 +171,13 @@ router.put('/reset-leaderboard', protect, async (req, res) => {
   try { await User.updateMany({}, { streak: 0, totalTasksCompleted: 0, 'pet.xp': 0, 'pet.level': 1, 'pet.stage': 1, 'pet.evolutionName': 'Mystery Egg 🥚' }); res.json({ message: "Leaderboard Reset Successfully!" }); } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// ==========================================
-// 🛡️ ADMIN ROUTES (Using 'protect' middleware)
-// ==========================================
-
-// 1. Get All Users (Admin Only)
-router.get('/admin/users', protect, async (req, res) => { // ✅ FIXED: Changed fetchuser to protect
-  try {
-    const adminUser = await User.findById(req.user.id);
-    if (adminUser.role !== 'admin') {
-      return res.status(403).json({ message: "Access Denied. Admins only." });
-    }
-    const users = await User.find().select('-password').sort({ createdAt: -1 });
-    res.json(users);
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Internal Server Error");
-  }
+// Admin Routes
+router.get('/admin/users', protect, async (req, res) => {
+  try { const adminUser = await User.findById(req.user.id); if (adminUser.role !== 'admin') return res.status(403).json({ message: "Access Denied" }); const users = await User.find().select('-password').sort({ createdAt: -1 }); res.json(users); } catch (error) { res.status(500).send("Server Error"); }
 });
 
-// 2. Delete User (Admin Only)
-router.delete('/admin/delete-user/:id', protect, async (req, res) => { // ✅ FIXED: Changed fetchuser to protect
-  try {
-    const adminUser = await User.findById(req.user.id);
-    if (adminUser.role !== 'admin') {
-      return res.status(403).json({ message: "Access Denied. Admins only." });
-    }
-
-    const userToDelete = await User.findById(req.params.id);
-    if (!userToDelete) return res.status(404).json({ message: "User not found" });
-
-    if (userToDelete._id.toString() === req.user.id) {
-        return res.status(400).json({ message: "You cannot delete yourself!" });
-    }
-
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "User deleted successfully." });
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Internal Server Error");
-  }
-});
-
-// ==========================================
-// 🛠️ SUPER FIX ROUTE (Create or Reset)
-// ==========================================
-router.get('/super-fix', async (req, res) => {
-  try {
-    const email = "bhavya_new@test.com"; // Yahi email fix hogi
-    let user = await User.findOne({ email });
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash("123456", salt);
-
-    if (user) {
-      // ✅ CASE 1: User mil gaya -> Password Reset karo
-      user.password = hashedPassword;
-      user.role = "admin"; // Admin bhi bana diya
-      user.resetPasswordToken = undefined;
-      await user.save();
-      res.send(`<h1>✅ User Found!</h1> <p>Password reset to: <b>123456</b></p> <p>Role updated to: <b>Admin</b></p> <a href="http://localhost:3000/login">Login Now</a>`);
-    } else {
-      // 🛠️ CASE 2: User nahi mila -> Naya banao
-      user = await User.create({
-        name: "Super Admin",
-        email: email,
-        password: hashedPassword,
-        role: "admin",
-        pet: { name: "Rocky", xp: 50, level: 1 }
-      });
-      res.send(`<h1>🛠️ User Created Successfully!</h1> <p>Email: <b>${email}</b></p> <p>Password: <b>123456</b></p> <p>Role: <b>Admin</b></p> <a href="http://localhost:3000/login">Login Now</a>`);
-    }
-  } catch (err) {
-    res.send("❌ Error: " + err.message);
-  }
+router.delete('/admin/delete-user/:id', protect, async (req, res) => {
+  try { const adminUser = await User.findById(req.user.id); if (adminUser.role !== 'admin') return res.status(403).json({ message: "Access Denied" }); await User.findByIdAndDelete(req.params.id); res.json({ message: "User deleted" }); } catch (error) { res.status(500).send("Server Error"); }
 });
 
 module.exports = router;

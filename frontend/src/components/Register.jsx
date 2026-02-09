@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
+import { Eye, EyeOff } from 'lucide-react'; // ✅ Icons Added
 
 const Register = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false); // ✅ Toggle State
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -76,18 +78,28 @@ const Register = () => {
             />
           </div>
 
+          {/* ✅ Updated Password Field */}
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">
               Password
             </label>
-            <input
-              type="password"
-              name="password"
-              placeholder="••••••••"
-              onChange={handleChange}
-              className="w-full rounded-lg bg-slate-700 border border-slate-600 p-3 text-white focus:border-indigo-500 focus:outline-none"
-              required
-            />
+            <div className="relative">
+                <input
+                    type={showPassword ? "text" : "password"} // Dynamic Type
+                    name="password"
+                    placeholder="••••••••"
+                    onChange={handleChange}
+                    className="w-full rounded-lg bg-slate-700 border border-slate-600 p-3 pr-12 text-white focus:border-indigo-500 focus:outline-none"
+                    required
+                />
+                <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)} 
+                    className="absolute right-3 top-3 text-slate-400 hover:text-white transition cursor-pointer"
+                >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+            </div>
           </div>
 
           <button
